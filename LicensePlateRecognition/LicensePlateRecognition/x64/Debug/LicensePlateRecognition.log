@@ -1,0 +1,11 @@
+﻿  plate.cpp
+d:\opencv\opencv\build\include\opencv2\core\mat.hpp(1965): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+d:\opencv\opencv\build\include\opencv2\core\persistence.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+d:\opencv\opencv\build\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+d:\opencv\opencv\build\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+e:\code\test\licenseplaterecognition\licenseplaterecognition\plate.cpp(6): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+e:\code\test\licenseplaterecognition\licenseplaterecognition\plate.cpp(8): warning C4244: “初始化”: 从“float”转换到“int”，可能丢失数据
+e:\code\test\licenseplaterecognition\licenseplaterecognition\plate.cpp(9): warning C4244: “初始化”: 从“float”转换到“int”，可能丢失数据
+e:\code\test\licenseplaterecognition\licenseplaterecognition\plate.cpp(22): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+e:\code\test\licenseplaterecognition\licenseplaterecognition\plate.cpp(23): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+  LicensePlateRecognition.vcxproj -> E:\code\test\LicensePlateRecognition\x64\Debug\LicensePlateRecognition.exe

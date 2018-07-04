@@ -1,60 +1,31 @@
-# <div align="center"> 车牌定位系统(一)颜色定位 </div>
+# <div align="center"> 车牌定位系统(二)Sobel算子定位 </div>
 
 此项目只是将车牌定位出来，不做后面的车牌符号识别部分！  
-此项目参考了[EasyPR](http://www.cnblogs.com/subconscious/p/4047960.html "EasyPR")开源项目，非常感谢EasyPR开发团队无偿奉献和高质量的博客。  
+此项目参考了[EasyPR](http://www.cnblogs.com/subconscious/p/4047960.html "EasyPR")开源项目，非常感谢EasyPR开发团队无偿奉献和高质量的博客。
 
-### 一、颜色模型选择
- 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关于颜色定位首先想到的解决方案就是：利用RGB值来判断。
-  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;这个想法听起来很自然：如果我们想找出一幅图像中的蓝色部分，那么我们只需要检查RGB分量（RGB分量由Red分量--红色，Green分量--绿色Blue分量--蓝色共同组成）中的Blue分量就可以了。一般来说，Blue分量是个0到255的值，如果我们设定一个阈值，并且检查每个像素的Blue分量是否大于它，那我们不就可以得知这些像素是不是蓝色的了么？这个想法虽然很好，不过存在一个问题，我们该怎么来选择这个阈值？这是第一个问题。 
- 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;即便我们用一些方法决定了阈值以后，那么下面的一个问题就会让人抓狂，颜色是组合的，即便蓝色属性在255（这样已经很‘蓝’了吧），只要另外两个分量配合（例如都为255），你最后得到的不是蓝色，而是黑色。这还只是区分蓝色的问题，黄色更麻烦，它是由红色和绿色组合而成的，这意味着你需要考虑两个变量的配比问题。这些问题让选择RGB颜色作为判断的难度大到难以接受的地步。
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;因此必须另想办法。为了解决各种颜色相关的问题，人们发明了各种颜色模型。其中有一个模型，非常适合解决颜色判断的问题。这个模型就是HSV模型。
-
-<div align=center> <img src="./image/HSV.jpg"/> </div><br>
-<div align=center> 图1 HSV颜色模型 </div>
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;HSV模型是根据颜色的直观特性创建的一种圆锥模型。与RGB颜色模型中的每个分量都代表一种颜色不同的是，HSV模型中每个分量并不代表一种颜色，H、 S、 V 分别代表颜色的色调（Hue）、 饱和度（Saturation）和亮度（Value） 分量值， 其与人眼能够感知的颜色特性一一对应。这种颜色模型用 Munsell 三维空间坐标系统表示， 由于坐标之间具有心理感知独立性， 它可以独立感知各颜色分量的变化， 而且由于这种颜色具有线性伸缩性， 其可感知的颜色差是与颜色分量相应样值上的欧几里德距离成比例的，因此适合用户的肉眼判断。 同时也由于 HSV 模型对应于画家配色模型， 其能较好反映人对色彩的感知和鉴别能力， 非常适合基于色彩的图象相似比较， 因此本算法中， 采用该颜色模型来进行彩色图象分割。
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H分量是代表颜色特性的分量，用角度度量，取值范围为0～360，从红色开始按逆时针方向计算，红色为0，绿色为120，蓝色为240。S分量代表颜色的饱和信息，取值范围为0.0～1.0，值越大，颜色越饱和。V分量代表明暗信息，取值范围为0.0～1.0，值越大，色彩越明亮。
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H分量是HSV模型中唯一跟颜色本质相关的分量。只要固定了H的值，并且保持S和V分量不太小，那么表现的颜色就会基本固定。为了判断蓝色车牌颜色的范围，可以固定了S和V两个值为1以后，调整H的值，然后看颜色的变化范围。通过一段摸索，可以发现当H的取值范围在200到280时，这些颜色都可以被认为是蓝色车牌的颜色范畴。于是我们可以用H分量是否在200与280之间来决定某个像素是否属于蓝色车牌。黄色车牌也是一样的道理，通过观察，可以发现当H值在30到80时，颜色的值可以作为黄色车牌的颜色。  
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;光判断H分量的值是否就足够了？
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;事实上是不足的。固定了H的值以后，如果移动V和S会带来颜色的饱和度和亮度的变化。当V和S都达到最高值，也就是1时，颜色是最纯正的。降低S，颜色越发趋向于变白。降低V，颜色趋向于变黑，当V为0时，颜色变为黑色。因此，S和V的值也会影响最终颜色的效果。
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;可以设置一个阈值，假设S和V都大于阈值时，颜色才属于H所表达的颜色。
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在EasyPR开源项目里，这个值是0.37，也就是V属于0.37到1且S属于0.37到1的一个范围，类似于一个矩形。对V和S的阈值判断是有必要的，因为很多车牌周身的车身，都是H分量属于200-280，而V分量或者S分量小于0.37的。通过S和V的判断可以排除车牌周围车身的干扰。我们这个算法也按EasyPR项目的值设置。  
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color=red>注意</font>：在OpenCV里，对H分量除以了2，也就是0-180的范围，S和V分量乘以了255，将0-1的范围扩展到0-255。我们在设置阈值的时候需要参照opencv的标准，因此蓝色车牌中的H分量范围在100~140之间，S和V分量范围在95~255之间；黄色车牌中的H分量范围在15~40之间，S和V分量范围在95~255之间。
-
-### 二、高斯模糊
+### 一、高斯模糊
 
 **1. 目标**   
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;对图像去燥，同时如果车有反光，如果不用高斯模糊，反光会影响定位精度，所以高斯模糊可以消除反光对车牌定位的影响。  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;对图像去燥，同时如果车有反光，如果不用高斯模糊，反光会影响定位精度，所以高斯模糊可以消除反光对车牌定位的影响。
 
 **2. 效果**     
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在车牌定位中的第一步就是高斯模糊处理。  
 
-<div align="center"> <img src="./image/GaussianBlur.jpg"/> </div>
-<div align="center">图2 高斯模糊效果</div>
+<div align="center"> <img src="./image/GaussianBlur.jpg"/> </div> 
+<div align="center">图1 高斯模糊效果</div>
 
-**3. 理论** 
+**3. 理论**  
  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;高斯模糊是非常有名的一种图像处理技术。顾名思义，其一般应用是将图像变得模糊，但同时高斯模糊也应用在图像的预处理阶段。理解高斯模糊前，先看一下平均模糊算法。平均模糊的算法非常简单。见下图，每一个像素的值都取周围所有像素（共8个）的平均值。
 
-<div align="center"> <img src="./image/average.jpg"/> </div><br> 
-<div align="center">图3 平均模糊示意图</div>   
+<div align="center"> <img src="./image/average.jpg"/> </div><br>
+<div align="center">图2 平均模糊示意图</div>  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在上图中，左边红色点的像素值本来是2，经过模糊后，就成了1（取周围所有像素的均值）。在平均模糊中，周围像素的权值都是一样的，都是1。如果周围像素的权值不一样，并且与二维的高斯分布的值一样，那么就叫做高斯模糊。
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在上面的模糊过程中，每个像素取的是周围一圈的平均值，也称为模糊半径为1。如果取周围三圈，则称之为半径为3。半径增大的话，会更加深模糊的效果。
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在上面的模糊过程中，每个像素取的是周围一圈的平均值，也称为模糊半径为1。如果取周围三圈，则称之为半径为3。半径增大的话，会更加深模糊的效果。 
 
 **4. 实践**  
 
@@ -65,69 +36,16 @@
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;高斯模糊中的半径也会给结果带来明显的变化。有的图片，高斯模糊半径过高了，车牌就定位不出来。有的图片，高斯模糊半径偏低了，车牌也定位不出来。因 此、高斯模糊的半径既不宜过高，也不能过低。在数次的实验以后，保留高斯模糊过程与半径值为5是最佳的实践。
 
-### 三、转换颜色
-
-**1. 将图像转到HSV空间处理** 
-
-    // 将RGB转到HSV空间进行处理
-	cvtColor(src_blur, src_hsv, CV_BGR2HSV); 
- 
-src\_blur表示输入图像，src\_hsv表示输出图像  
-
-**2. 搜索符合颜色的区域**  
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;此部分，我们以蓝色车牌为例。   
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;将满足蓝色区域的颜色，H分量置为0，S分量置为0，V分量置为255，不满颜色的区域H、S、V全部置为0
-
-    int channels = src_hsv.channels();
-	int nRows = src_hsv.rows;
-	//图像数据列需要考虑通道数的影响；
-	int nCols = src_hsv.cols * channels;
-
-	if (src_hsv.isContinuous())//连续存储的数据，按一行处理
-	{
-		nCols *= nRows;
-		nRows = 1;
-	}
-
-	int i, j;
-	uchar* p = NULL;
-
-	for (i = 0; i < nRows; ++i)
-	{
-		p = src_hsv.ptr<uchar>(i);
-		for (j = 0; j < nCols; j += 3)
-		{
-			int H = int(p[j]); //0-180
-			int S = int(p[j + 1]);  //0-255
-			int V = int(p[j + 2]);  //0-255
-
-			if ((H > min_h && H < max_h) && (S > min_sv && S < max_sv) && (V > min_sv && V < max_sv))
-			{
-				p[j] = 0; 
-				p[j + 1] = 0; 
-				p[j + 2] = 255;
-			}
-			else
-			{
-				p[j] = 0; 
-				p[j + 1] = 0; 
-				p[j + 2] = 0;
-			}
-		}
-	}
-
-
-### 四、灰度化处理
+### 二、灰度化处理
 
 **1. 目标**
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;由于前面还是三通道彩色图，而后面进行闭操作的函数morphologyEx需要单通道的灰度图，所以要转换图模型。 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;由于前面还是三通道彩色图，而后面进行闭操作的函数morphologyEx和Sobel算子需要单通道的灰度图，所以要转换图模型。 
 
-**2. 效果** 
+**2. 效果**   
 
 <div align="center"> <img src="./image/cvtColor.jpg"/> </div>
-<div align="center">图4 灰度化效果</div>
+<div align="center">图3 灰度化效果</div>
 
 **3. 实践**
 
@@ -135,7 +53,70 @@ src\_blur表示输入图像，src\_hsv表示输出图像
 
 src\_hsv表示输入图像，src\_grey表示输出图像
 
-### 五、二值化 
+### 三、Sobel算子
+
+**1. 目标**  
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;检测图像中的垂直边缘，便于区分车牌。
+
+**2. 效果**      
+
+<div align="center"> <img src="./image/Sobel.jpg"/> </div>
+<div align="center">图4 Sobel效果</div>
+
+**3. 理论**
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;如果要说哪个步骤是算法中的核心与灵魂，毫无疑问是Sobel算子。没有Sobel算子，也就没有垂直边缘的检测，也就无法得到车牌的可能位置，也就没有后面的一系列的车牌判断、字符识别过程。通过Sobel算子，可以很方便的得到车牌的一个相对准确的位置，为我们的后续处理打好坚实的基础。在上面的执行过程中可以看到，正是通过Sobel算子，将车牌中的字符与车的背景明显区分开来，为后面的二值化与闭操作 打下了基础。那么Sobel算子是如何运作的呢？
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Soble算子原理是对图像求一阶的水平与垂直方向导数，根据导数值的大小来判断是否是边缘。请详见[博客](http://blog.csdn.net/chen134225/article/details/80908922 "博客")。
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;为了计算方便，Soble算子并没有真正去求导，而是使用了周边值的加权和的方法，学术上称作“卷积”。权值称为“卷积模板”。例如下图左边就是Sobel的Gx卷积模板（计算垂直边缘），中间是原图像，右边是经过卷积模板后的新图像。  
+
+<div align="center"> <img src="./image/sobel_Gx.jpg"/> </div><br>
+<div align="center">图5 Sobel算子Gx示意图</div>  
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在这里演示了通过卷积模板，原始图像红色的像素点原本是5的值，经过卷积计算（- 1 * 3 - 2 * 3 - 1 * 4 + 1 * 2 + 2 * 7 + 1 * 6 = 9）后红色像素的值变成了9。
+
+**4. 实践**  
+
+在代码中调用Soble算子需要较多的步骤。
+
+
+    //sobel算子处理
+	Mat grad_x, grad_y;
+	Mat abs_grad_x, abs_grad_y;
+
+	Sobel(mat_gray, grad_x, CV_16S, 1, 0, 3, 1, 0, BORDER_DEFAULT);
+	convertScaleAbs(grad_x, abs_grad_x);
+
+	Mat grad;
+	addWeighted(abs_grad_x, 1, 0, 0, 0, grad);
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在Sobel第四个和第五个参数代表水平方向和垂直方向的权值，默认前者是1，后者是0，代表仅仅做水平方向求导，而不做垂直方向求导。这样做的意义是，如果我们做了垂直方向求导，会检测出很多水平边缘。水平边缘多也许有利于生成更精确的轮廓，但是由于有些车子前端太多的水平边缘了，例如车头排气孔，标志等等，很多的水平边缘会误导我们的连接结果，导致我们得不到一个恰好的车牌位置。  
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;由于Sobel算子如此重要，可以将车牌与其他区域明显区分出来，那么问题就来了，有没有与Sobel功能类似的算子可以达到一致的效果，或者有没有比Sobel效果更好的算子？
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sobel算子求图像的一阶导数，Laplace算子则是求图像的二阶导数，在通常情况下，也能检测出边缘，不过Laplace算子的检测不分水平和垂直。下图是Laplace算子与Sobel算子的一个对比。 
+
+<div align="center"> <img src="./image/sobel_laplace.jpg"/> </div>
+<div align="center">图6 Sobel与Laplace示意图</div>  
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;可以看出，通过Laplace算子的图像包含了水平边缘和垂直边缘，根据我们刚才的描述。水平边缘对于车牌的检测一般无利反而有害。经过对近百幅图像的测试，Sobel算子的效果优于Laplace算子，因此不适宜采用Laplace算子替代Sobel算子。
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;除了Sobel算子，还有一个算子，Shcarr算子。但这个算子其实只是Sobel算子的一个变种，由于Sobel算子在3*3的卷积模板上计算往往不太精确，因此有一个特殊的Sobel算子，其权值按照下图来表达，称之为Scharr算子。下图是Sobel算子与Scharr算子的一个对比。  
+
+<div align="center"> <img src="./image/sobel_scharr.jpg"/> </div>
+<div align="center">图7 Sobel与Scharr示意图</div>  
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一般来说，Scharr算子能够比Sobel算子检测边缘的效果更好，从上图也可以看出。但是，这个“更好”是一把双刃剑。我们的目的并不是画出图像的边缘，而是确定车牌的一个区域，越精细的边缘越会干扰后面的闭运算。因此，针对大量的图片的测试，Sobel算子一般都优于Scharr算子。
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关于Sobel算子更详细的解释和Scharr算子与Sobel算子的同异，可以参看官网的介绍：Sobel与Scharr。
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;综上所述，在求图像边缘的过程中，Sobel算子是一个最佳的契合车牌定位需求的算子，Laplace算子与Scharr算子的效果都不如它。
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;有一点要说明的：Sobel算子仅能对灰度图像有效果，不能将色彩图像作为输入。因此在进行Soble算子前必须进行前面的灰度化工作。
+
+### 四、二值化 
 
  **1. 目标**
 
@@ -146,7 +127,7 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;经过二值化处理后的图像效果为下图，与灰度图像仔细区分下，二值化图像中的白色是没有颜色强与暗的区别的。
 
 <div align="center"> <img src="./image/threshold.jpg"/> </div><br> 
-<div align="center">图5 二值化效果</div>
+<div align="center">图8 二值化效果</div>
 
 **3. 理论**
 
@@ -166,15 +147,14 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;如果想使用反二值化，可以使用参数CV\_THRESH\_BINARY\_INV代替CV\_THRESH\_BINARY即可。EasyPR项目上说：由于蓝牌字符浅，背景深，黄牌则是字符深，背景浅，因此需要正二值化方法与反二值化两种方法来处理，其中正二值化处理蓝牌，反二值化处理黄牌。但我自己试验结果表明，都用正二值化处理的结果定位率更高，使用反二值化处理黄牌，有的并不能识别处理。
 
 <div align="center"> <img src="./image/threshold2.jpg"/> </div> 
-<div align="center">图6 蓝牌用正二值化处理，黄牌用反二值化处理</div>
+<div align="center">图9 蓝牌用正二值化处理，黄牌用反二值化处理</div>
 
 <div align="center"> <img src="./image/threshold3.jpg"/> </div> 
-<div align="center">图7 蓝牌和黄牌都用正二值化处理</div>
+<div align="center">图10 蓝牌和黄牌都用正二值化处理</div>
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;从图中可以看出，黄牌使用反二值化处理，并没有识别出黄牌粤AA0825这个车牌，所以蓝牌和黄牌最好都用正二值化处理。
 
-
-### 六、闭操作 
+### 五、闭操作 
 
 **1. 目标** 
 
@@ -183,14 +163,14 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 **2. 效果**   
 
 <div align="center"> <img src="./image/morphologyEx.jpg"/> </div> 
-<div align="center">图8 闭操作效果</div> 
+<div align="center">图11 闭操作效果</div> 
 
 **3. 理论**  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;闭操作就是对图像先膨胀，再腐蚀。闭操作的结果一般是可以将许多靠近的图块相连称为一个无突起的连通域。在我们的图像定位中，使用了闭操作去连接所有的字符小图块，然后形成一个车牌的大致轮廓。闭操作的过程我会讲的细致一点。为了说明字符图块连接的过程。原图首先经过膨胀操作，将两个分开的图块结合起来（注意我用偏白的灰色图块表示由于膨胀操作而产生的新的白色）。接着通过腐蚀操作，将连通域的边缘和突起进行削平（注意我用偏黑的灰色图块表示由于腐蚀被侵蚀成黑色图块）。最后得到的是一个无突起的连通域（纯白的部分）。  
 
 <div align="center"> <img src="./image/morphologyEx2.jpg"/> </div> 
-<div align="center">图9 闭操作原理</div> 
+<div align="center">图12 闭操作原理</div> 
 
 **4. 代码** 
 
@@ -201,12 +181,12 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;opencv中所有形态学操作有一个统一的函数，通过参数来区分不同的具体操作。例如MOP_CLOSE代表闭操作，MOP_OPEN代表开操作。
 
-    morphologyEx(src_grey, src_grey, MORPH_CLOSE, element);  
+    morphologyEx(src_threshold, src_threshold, MORPH_CLOSE, element);  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;下图是图像使用闭操作与开操作处理后的一个区别：  
 
 <div align="center"> <img src="./image/close_open.jpg"/> </div>
-<div align="center"> 图10 开与闭的对比</div>  
+<div align="center"> 图13 开与闭的对比</div>  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;怎么开操作后图像没了？原因是：开操作第一步腐蚀的效果太强，直接导致接下来的膨胀操作几乎没有效果，所以图像就变几乎没了。  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;可以看出，使用闭操作以后，车牌字符的图块被连接成了一个较为规则的矩形，通过闭操作，将车牌中的字符连成了一个图块，同时将突出的部分进行裁剪，图块成为了一个类似于矩形的不规则图块。我们知道，车牌应该是一个规则的矩形，因此获取规则矩形的办法就是先取轮廓，再接着求最小外接矩形。
@@ -215,21 +195,20 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;为什么这么说，因为有一个”断节“的问题。中国车牌有一个特点，就是表示城市的字母与右边相邻的字符距离远大于其他相邻字符之间的距离。如果你设置的不够大，结果导致左边的字符与右边的字符中间断开了，如下图：
 
 <div align="center"> <img src="./image/duanjie.jpg"/> </div>  
-<div align="center">图11 “断节”效果</div>   
+<div align="center">图14 “断节”效果</div>   
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;这种情况我称之为“断节”如果你不想字符从中间被分成"苏A"和"7EUK22"的话，那么就必须把它设置大点。
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;宽度过大也是不好的，因为它会导致闭操作连接不该连接的部分，例如下图的情况。  
 
 <div align="center"> <img src="./image/rect.jpg"/> </div>
-<div align="center">图12 矩形模板宽度过大</div>  
+<div align="center">图15 矩形模板宽度过大</div>  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;这种情况下，你取轮廓获得矩形肯定会大于你设置的校验规则，即便通过校验了，由于图块中有不少不是车牌的部分，会给字符识别带来麻烦。
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;因此，矩形的宽度是一个需要非常细心权衡的值，过大过小都不好，取决于你的环境。至于矩形的高度，3是一个较好的值，一般来说都能工作的很好，不需要改变。
 
-
-### 七、取轮廓
+### 六、取轮廓
 
 **1. 目标**   
 
@@ -238,7 +217,7 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 **2. 效果**   
 
 <div align="center"> <img src="./image/findContours.jpg"/> </div> 
-<div align="center">图13 取轮廓操作</div>
+<div align="center">图16 取轮廓操作</div>
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在图中，红色的线条就是轮廓，可以看到，有非常多的轮廓。取轮廓操作就是将图像中的所有独立的不与外界有交接的图块取出来。然后根据这些轮廓，求这些轮廓的最小外接矩形。这里面需要注意的是这里用的矩形是RotatedRect，意思是可旋转的。因此我们得到的矩形不是水平的，这样就为处理倾斜的车牌打下了基础。  
   
@@ -246,9 +225,9 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 
     // 提取外部轮廓
 	vector<vector<Point> > contours;
-	findContours(src_grey, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);  
+	findContours(src_threshold, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);  
 
-### 八、尺寸判断  
+### 七、尺寸判断  
  
 **1. 目标**  
 
@@ -259,7 +238,7 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;经过尺寸判断，会排除大量由轮廓生成的不合适尺寸的最小外接矩形。效果如下图：  
 
 <div align="center"> <img src="./image/size.jpg"/> </div> 
-<div align="center">图14 尺寸判断操作</div>
+<div align="center">图17 尺寸判断操作</div>
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;通过对图像中所有的轮廓的外接矩形进行遍历，代码如下：  
 
@@ -311,13 +290,13 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;中国车牌的一般大小是440mm\*140mm，面积为440\*140，宽高比为3.14，所以我们设置在2.2~3.8范围，如果不在这范围的，则不满足。根据提取的车牌面积测量，车牌面积在3000~50000范围内，所以不在这范围内的车牌外接矩形面积，则不满足。  
 
-### 九、角度判断  
+### 八、角度判断  
 
 **1. 目标** 
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;排除不可能是车牌的矩形。一般来说，在一副图片中，车牌不太会有非常大的倾斜，我们做如下规定：如果一个矩形的偏斜角度大于某个角度（例如60度），则认为不是车牌并舍弃。  
 
-### 十、旋转  
+### 九、旋转  
 
 **1. 目标**  
 
@@ -326,12 +305,12 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 **2. 效果**  
 
 <div align=center> <img src="./image/qinxie.jpg"/> </div><br>    
-<div align=center>图15 倾斜的车牌</div><br>  
+<div align=center>图18 倾斜的车牌</div><br>  
 
 &nbsp;&nbsp;&nbsp;&nbsp;使用旋转与不适用旋转的效果区别如下图：  
 
 <div align=center> <img src="./image/rotated.jpg"/> </div>
-<div align=center>图16 旋转的效果</div>  
+<div align=center>图19 旋转的效果</div>  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;我们使用的是整体旋转，上面的旋转效果图，只是从整体旋转图截取出来的。  
 
@@ -343,13 +322,12 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 	Mat img_rotated;
 	warpAffine(src, img_rotated, rotmat, src.size(), CV_INTER_CUBIC);
 
-### 十一、从原图中截取车牌  
+### 十、从原图中截取车牌  
 
     Mat resultMat;
 	getRectSubPix(img_rotated, rect_size, mr.center, resultMat);
 
-
-### 完整代码如下
+### 完整代码如下：
 
 
 	//plate.h  
@@ -362,98 +340,16 @@ src\_hsv表示输入图像，src\_grey表示输出图像
   	using namespace cv; 
   
   	enum Color {BLUE, YELLOW, UNKNOWN};  
-  	void plateColorLocate(Mat src, vector<Mat> &results, Color color);
+	void plateSobelLocate(Mat src, vector<Mat> &results);
+	void globelRotation(const Mat src, vector<Mat> &results, vector<vector<Point> > contours);
 
 ---
+
 	//plate.cpp
 	#include "plate.h"
 
-	void plateColorLocate(const Mat src, vector<Mat> &results, const Color color)
+	void globelRotation(const Mat src, vector<Mat> &results, vector<vector<Point> > contours)
 	{
-		const float max_sv = 255;
-		const float min_sv = 95;
-	
-		//blue的H范围
-		const int min_blue = 100;  //100
-		const int max_blue = 140;  //140
-	
-		//yellow的H范围
-		const int min_yellow = 15; //15
-		const int max_yellow = 40; //40
-	
-		//高斯模糊。Size中的数字影响车牌定位的效果。
-		Mat src_blur;
-		GaussianBlur(src, src_blur, Size(5, 5), 0, 0, BORDER_DEFAULT);
-	
-		Mat src_hsv;
-		// 转到HSV空间进行处理，颜色搜索主要使用的是H分量进行蓝色与黄色的匹配工作
-		cvtColor(src_blur, src_hsv, CV_BGR2HSV);
-	
-		//匹配模板基色,切换以查找想要的基色
-		int min_h = 0;
-		int max_h = 0;
-		switch (color) 
-		{
-		case BLUE:
-			min_h = min_blue;
-			max_h = max_blue;
-			break;
-		case YELLOW:
-			min_h = min_yellow;
-			max_h = max_yellow;
-			break;
-		}
-	
-		int channels = src_hsv.channels();
-		int nRows = src_hsv.rows;
-		//图像数据列需要考虑通道数的影响；
-		int nCols = src_hsv.cols * channels;
-	
-		if (src_hsv.isContinuous())//连续存储的数据，按一行处理
-		{
-			nCols *= nRows;
-			nRows = 1;
-		}
-	
-		int i, j;
-		uchar* p = NULL;
-	
-		for (i = 0; i < nRows; ++i)
-		{
-			p = src_hsv.ptr<uchar>(i);
-			for (j = 0; j < nCols; j += 3)
-			{
-				int H = int(p[j]); //0-180
-				int S = int(p[j + 1]);  //0-255
-				int V = int(p[j + 2]);  //0-255
-	
-				if ((H > min_h && H < max_h) && (S > min_sv && S < max_sv) && (V > min_sv && V < max_sv))
-				{
-					p[j] = 0; 
-					p[j + 1] = 0; 
-					p[j + 2] = 255;
-				}
-				else
-				{
-					p[j] = 0; 
-					p[j + 1] = 0; 
-					p[j + 2] = 0;
-				}
-			}
-		}
-		//获取二值化灰度图
-		Mat src_grey;
-		cvtColor(src_hsv, src_grey, CV_RGB2GRAY);
-    	threshold(src_grey, src_grey, 0, 255, CV_THRESH_OTSU + CV_THRESH_BINARY);
-	
-		//对图像进行闭操作
-		Mat element = getStructuringElement(MORPH_RECT, Size(17, 3));
-		morphologyEx(src_grey, src_grey, MORPH_CLOSE, element);
-	
-		// 提取外部轮廓
-		vector<vector<Point> > contours;
-		findContours(src_grey, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-	
 		vector<vector<Point> >::iterator itc = contours.begin();
 		while (itc != contours.end())
 		{
@@ -494,12 +390,51 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 					Mat resultMat;
 					getRectSubPix(img_rotated, rect_size, mr.center, resultMat);
 					results.push_back(resultMat);
-					
+	
 				}
 			}
 			++itc;
 		}
+	}
+
 	
+	void plateSobelLocate(Mat src, vector<Mat> &results)
+	{
+		Mat src_blur;
+		//高斯模糊处理
+		GaussianBlur(src, src_blur, Size(5, 5), 0, 0, BORDER_DEFAULT);
+	
+		Mat src_gray;
+		//灰度化处理
+		if (src_blur.channels() == 3)
+			cvtColor(src_blur, src_gray, CV_RGB2GRAY);
+		else
+			src_gray = src_blur;
+	
+		//sobel算子处理
+		Mat grad_x, grad_y;
+		Mat abs_grad_x, abs_grad_y;
+	
+		Sobel(src_gray, grad_x, CV_16S, 1, 0, 3, 1, 0, BORDER_DEFAULT);
+		convertScaleAbs(grad_x, abs_grad_x);
+	
+		Mat grad;
+		addWeighted(abs_grad_x, 1, 0, 0, 0, grad);
+	
+		//二值化处理
+		Mat src_threshold;
+		threshold(grad, src_threshold, 0, 255, CV_THRESH_OTSU + CV_THRESH_BINARY);
+	
+		//闭操作
+		Mat element = getStructuringElement(MORPH_RECT, Size(17, 3));
+		morphologyEx(src_threshold, src_threshold, MORPH_CLOSE, element);
+	
+		//取外部轮廓
+		vector<vector<Point> > contours;
+		findContours(src_threshold, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+	
+		//globelRotation(src, results, contours);
+		partialRotation(src, src_threshold, results, contours);
 	}
 
 下面是测试代码：  

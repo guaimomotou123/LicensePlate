@@ -61,7 +61,7 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 
 **2. 效果**      
 
-<div align="center"> <img src="./image/Sobel.jpg"/> </div>
+<div align="center"> <img src="./image/sobel.jpg"/> </div>
 <div align="center">图4 Sobel效果</div><br>
 
 **3. 理论**

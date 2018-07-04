@@ -14,14 +14,14 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在车牌定位中的第一步就是高斯模糊处理。  
 
 <div align="center"> <img src="./image/GaussianBlur.jpg"/> </div> 
-<div align="center">图1 高斯模糊效果</div>
+<div align="center">图1 高斯模糊效果</div><br>
 
 **3. 理论**  
  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;高斯模糊是非常有名的一种图像处理技术。顾名思义，其一般应用是将图像变得模糊，但同时高斯模糊也应用在图像的预处理阶段。理解高斯模糊前，先看一下平均模糊算法。平均模糊的算法非常简单。见下图，每一个像素的值都取周围所有像素（共8个）的平均值。
 
 <div align="center"> <img src="./image/average.jpg"/> </div><br>
-<div align="center">图2 平均模糊示意图</div>  
+<div align="center">图2 平均模糊示意图</div><br>  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在上图中，左边红色点的像素值本来是2，经过模糊后，就成了1（取周围所有像素的均值）。在平均模糊中，周围像素的权值都是一样的，都是1。如果周围像素的权值不一样，并且与二维的高斯分布的值一样，那么就叫做高斯模糊。
 
@@ -45,7 +45,7 @@
 **2. 效果**   
 
 <div align="center"> <img src="./image/cvtColor.jpg"/> </div>
-<div align="center">图3 灰度化效果</div>
+<div align="center">图3 灰度化效果</div><br>
 
 **3. 实践**
 
@@ -62,7 +62,7 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 **2. 效果**      
 
 <div align="center"> <img src="./image/Sobel.jpg"/> </div>
-<div align="center">图4 Sobel效果</div>
+<div align="center">图4 Sobel效果</div><br>
 
 **3. 理论**
 
@@ -73,7 +73,7 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;为了计算方便，Soble算子并没有真正去求导，而是使用了周边值的加权和的方法，学术上称作“卷积”。权值称为“卷积模板”。例如下图左边就是Sobel的Gx卷积模板（计算垂直边缘），中间是原图像，右边是经过卷积模板后的新图像。  
 
 <div align="center"> <img src="./image/sobel_Gx.jpg"/> </div><br>
-<div align="center">图5 Sobel算子Gx示意图</div>  
+<div align="center">图5 Sobel算子Gx示意图</div><br>  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在这里演示了通过卷积模板，原始图像红色的像素点原本是5的值，经过卷积计算（- 1 * 3 - 2 * 3 - 1 * 4 + 1 * 2 + 2 * 7 + 1 * 6 = 9）后红色像素的值变成了9。
 
@@ -99,14 +99,14 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sobel算子求图像的一阶导数，Laplace算子则是求图像的二阶导数，在通常情况下，也能检测出边缘，不过Laplace算子的检测不分水平和垂直。下图是Laplace算子与Sobel算子的一个对比。 
 
 <div align="center"> <img src="./image/sobel_laplace.jpg"/> </div>
-<div align="center">图6 Sobel与Laplace示意图</div>  
+<div align="center">图6 Sobel与Laplace示意图</div><br>  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;可以看出，通过Laplace算子的图像包含了水平边缘和垂直边缘，根据我们刚才的描述。水平边缘对于车牌的检测一般无利反而有害。经过对近百幅图像的测试，Sobel算子的效果优于Laplace算子，因此不适宜采用Laplace算子替代Sobel算子。
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;除了Sobel算子，还有一个算子，Shcarr算子。但这个算子其实只是Sobel算子的一个变种，由于Sobel算子在3*3的卷积模板上计算往往不太精确，因此有一个特殊的Sobel算子，其权值按照下图来表达，称之为Scharr算子。下图是Sobel算子与Scharr算子的一个对比。  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;除了Sobel算子，还有一个算子，Shcarr算子。但这个算子其实只是Sobel算子的一个变种，由于Sobel算子在3\*3的卷积模板上计算往往不太精确，因此有一个特殊的Sobel算子，其权值按照下图来表达，称之为Scharr算子。下图是Sobel算子与Scharr算子的一个对比。  
 
 <div align="center"> <img src="./image/sobel_scharr.jpg"/> </div>
-<div align="center">图7 Sobel与Scharr示意图</div>  
+<div align="center">图7 Sobel与Scharr示意图</div><br>  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一般来说，Scharr算子能够比Sobel算子检测边缘的效果更好，从上图也可以看出。但是，这个“更好”是一把双刃剑。我们的目的并不是画出图像的边缘，而是确定车牌的一个区域，越精细的边缘越会干扰后面的闭运算。因此，针对大量的图片的测试，Sobel算子一般都优于Scharr算子。
 
@@ -127,7 +127,7 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;经过二值化处理后的图像效果为下图，与灰度图像仔细区分下，二值化图像中的白色是没有颜色强与暗的区别的。
 
 <div align="center"> <img src="./image/threshold.jpg"/> </div><br> 
-<div align="center">图8 二值化效果</div>
+<div align="center">图8 二值化效果</div><br>
 
 **3. 理论**
 
@@ -147,10 +147,10 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;如果想使用反二值化，可以使用参数CV\_THRESH\_BINARY\_INV代替CV\_THRESH\_BINARY即可。EasyPR项目上说：由于蓝牌字符浅，背景深，黄牌则是字符深，背景浅，因此需要正二值化方法与反二值化两种方法来处理，其中正二值化处理蓝牌，反二值化处理黄牌。但我自己试验结果表明，都用正二值化处理的结果定位率更高，使用反二值化处理黄牌，有的并不能识别处理。
 
 <div align="center"> <img src="./image/threshold2.jpg"/> </div> 
-<div align="center">图9 蓝牌用正二值化处理，黄牌用反二值化处理</div>
+<div align="center">图9 蓝牌用正二值化处理，黄牌用反二值化处理</div><br>
 
 <div align="center"> <img src="./image/threshold3.jpg"/> </div> 
-<div align="center">图10 蓝牌和黄牌都用正二值化处理</div>
+<div align="center">图10 蓝牌和黄牌都用正二值化处理</div><br>
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;从图中可以看出，黄牌使用反二值化处理，并没有识别出黄牌粤AA0825这个车牌，所以蓝牌和黄牌最好都用正二值化处理。
 
@@ -163,14 +163,14 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 **2. 效果**   
 
 <div align="center"> <img src="./image/morphologyEx.jpg"/> </div> 
-<div align="center">图11 闭操作效果</div> 
+<div align="center">图11 闭操作效果</div><br> 
 
 **3. 理论**  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;闭操作就是对图像先膨胀，再腐蚀。闭操作的结果一般是可以将许多靠近的图块相连称为一个无突起的连通域。在我们的图像定位中，使用了闭操作去连接所有的字符小图块，然后形成一个车牌的大致轮廓。闭操作的过程我会讲的细致一点。为了说明字符图块连接的过程。原图首先经过膨胀操作，将两个分开的图块结合起来（注意我用偏白的灰色图块表示由于膨胀操作而产生的新的白色）。接着通过腐蚀操作，将连通域的边缘和突起进行削平（注意我用偏黑的灰色图块表示由于腐蚀被侵蚀成黑色图块）。最后得到的是一个无突起的连通域（纯白的部分）。  
 
 <div align="center"> <img src="./image/morphologyEx2.jpg"/> </div> 
-<div align="center">图12 闭操作原理</div> 
+<div align="center">图12 闭操作原理</div><br>
 
 **4. 代码** 
 
@@ -186,7 +186,7 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;下图是图像使用闭操作与开操作处理后的一个区别：  
 
 <div align="center"> <img src="./image/close_open.jpg"/> </div>
-<div align="center"> 图13 开与闭的对比</div>  
+<div align="center"> 图13 开与闭的对比</div><br>  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;怎么开操作后图像没了？原因是：开操作第一步腐蚀的效果太强，直接导致接下来的膨胀操作几乎没有效果，所以图像就变几乎没了。  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;可以看出，使用闭操作以后，车牌字符的图块被连接成了一个较为规则的矩形，通过闭操作，将车牌中的字符连成了一个图块，同时将突出的部分进行裁剪，图块成为了一个类似于矩形的不规则图块。我们知道，车牌应该是一个规则的矩形，因此获取规则矩形的办法就是先取轮廓，再接着求最小外接矩形。
@@ -195,14 +195,14 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;为什么这么说，因为有一个”断节“的问题。中国车牌有一个特点，就是表示城市的字母与右边相邻的字符距离远大于其他相邻字符之间的距离。如果你设置的不够大，结果导致左边的字符与右边的字符中间断开了，如下图：
 
 <div align="center"> <img src="./image/duanjie.jpg"/> </div>  
-<div align="center">图14 “断节”效果</div>   
+<div align="center">图14 “断节”效果</div><br>   
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;这种情况我称之为“断节”如果你不想字符从中间被分成"苏A"和"7EUK22"的话，那么就必须把它设置大点。
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;宽度过大也是不好的，因为它会导致闭操作连接不该连接的部分，例如下图的情况。  
 
 <div align="center"> <img src="./image/rect.jpg"/> </div>
-<div align="center">图15 矩形模板宽度过大</div>  
+<div align="center">图15 矩形模板宽度过大</div><br>  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;这种情况下，你取轮廓获得矩形肯定会大于你设置的校验规则，即便通过校验了，由于图块中有不少不是车牌的部分，会给字符识别带来麻烦。
 
@@ -217,7 +217,7 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 **2. 效果**   
 
 <div align="center"> <img src="./image/findContours.jpg"/> </div> 
-<div align="center">图16 取轮廓操作</div>
+<div align="center">图16 取轮廓操作</div><br>
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在图中，红色的线条就是轮廓，可以看到，有非常多的轮廓。取轮廓操作就是将图像中的所有独立的不与外界有交接的图块取出来。然后根据这些轮廓，求这些轮廓的最小外接矩形。这里面需要注意的是这里用的矩形是RotatedRect，意思是可旋转的。因此我们得到的矩形不是水平的，这样就为处理倾斜的车牌打下了基础。  
   
@@ -238,7 +238,7 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;经过尺寸判断，会排除大量由轮廓生成的不合适尺寸的最小外接矩形。效果如下图：  
 
 <div align="center"> <img src="./image/size.jpg"/> </div> 
-<div align="center">图17 尺寸判断操作</div>
+<div align="center">图17 尺寸判断操作</div><br>
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;通过对图像中所有的轮廓的外接矩形进行遍历，代码如下：  
 
@@ -288,7 +288,7 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 		++itc;
 	}
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;中国车牌的一般大小是440mm\*140mm，面积为440\*140，宽高比为3.14，所以我们设置在2.2~3.8范围，如果不在这范围的，则不满足。根据提取的车牌面积测量，车牌面积在3000~50000范围内，所以不在这范围内的车牌外接矩形面积，则不满足。  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;中国车牌的一般大小是440mm\*140mm，面积为440\*140，宽高比为3.14，所以我们设置在2.2\~3.8范围，如果不在这范围的，则不满足。根据提取的车牌面积测量，车牌面积在3000\~50000范围内，所以不在这范围内的车牌外接矩形面积，则不满足。  
 
 ### 八、角度判断  
 
@@ -305,12 +305,12 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 **2. 效果**  
 
 <div align=center> <img src="./image/qinxie.jpg"/> </div><br>    
-<div align=center>图18 倾斜的车牌</div><br>  
+<div align=center>图18 倾斜的车牌</div><br> 
 
 &nbsp;&nbsp;&nbsp;&nbsp;使用旋转与不适用旋转的效果区别如下图：  
 
 <div align=center> <img src="./image/rotated.jpg"/> </div>
-<div align=center>图19 旋转的效果</div>  
+<div align=center>图19 旋转的效果</div><br>  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;我们使用的是整体旋转，上面的旋转效果图，只是从整体旋转图截取出来的。  
 

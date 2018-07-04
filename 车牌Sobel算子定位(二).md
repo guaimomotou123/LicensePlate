@@ -1,7 +1,12 @@
 # <div align="center"> 车牌定位系统(二)Sobel算子定位 </div>
 
 此项目只是将车牌定位出来，不做后面的车牌符号识别部分！  
-此项目参考了[EasyPR](http://www.cnblogs.com/subconscious/p/4047960.html "EasyPR")开源项目，非常感谢EasyPR开发团队无偿奉献和高质量的博客。
+此项目参考了[EasyPR](http://www.cnblogs.com/subconscious/p/4047960.html "EasyPR")开源项目，非常感谢EasyPR开发团队无偿奉献和高质量的博客。  
+
+Sobel算子定位，分如下步骤：<br>
+
+<div align="center"> <img src="./image/Sobel_plate.jpg"/> </div> <br>
+<div align="center">图0 Sobel算子定位步骤</div><br>
 
 ### 一、高斯模糊
 
@@ -61,7 +66,7 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 
 **2. 效果**      
 
-<div align="center"> <img src="./image/Sobel.jpg"/> </div>
+<div align="center"> <img src="./image/sobel.jpg"/> </div>
 <div align="center">图4 Sobel效果</div><br>
 
 **3. 理论**
@@ -288,7 +293,7 @@ src\_hsv表示输入图像，src\_grey表示输出图像
 		++itc;
 	}
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;中国车牌的一般大小是440mm\*140mm，面积为440\*140，宽高比为3.14，所以我们设置在2.2\~3.8范围，如果不在这范围的，则不满足。根据提取的车牌面积测量，车牌面积在3000\~50000范围内，所以不在这范围内的车牌外接矩形面积，则不满足。  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;中国车牌的一般大小是440mm*140mm，面积为440*140，宽高比为3.14，所以我们设置在2.2~3.8范围，如果不在这范围的，则不满足。根据提取的车牌面积测量，车牌面积在3000~50000范围内，所以不在这范围内的车牌外接矩形面积，则不满足。  
 
 ### 八、角度判断  
 
